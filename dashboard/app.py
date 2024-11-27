@@ -130,6 +130,7 @@ with ui.layout_columns(col_widths=[6, 6, 12]):
 
         @render_plotly
         def tip_perc():
+            from ridgeplot import ridgeplot
             
             # Create a dataset for the ridge plot that does not depend on the selected day
             dat = tips.copy()  # Use the original dataset
