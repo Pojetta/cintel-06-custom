@@ -8,3 +8,4 @@ scipy
 faicons 
 ridgeplot
 statsmodels
+numpy
