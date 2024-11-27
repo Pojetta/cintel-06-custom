@@ -6,3 +6,4 @@ pyarrow
 plotly
 scipy
 faicons 
+ridgeplot
