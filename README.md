@@ -56,7 +56,7 @@ git push -u origin main
 
 ### Run your App Locally
 ```
-shiny run --reload --launch-browser penguins/app.py
+shiny run --reload --launch-browser dashboard/app.py
 ```
 
 ### Prepare your App for Deployment
