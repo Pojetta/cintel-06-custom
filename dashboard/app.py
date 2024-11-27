@@ -12,7 +12,24 @@ bill_rng = (min(tips.total_bill), max(tips.total_bill))
 # Add page title and sidebar
 ui.page_opts(title="Restaurant tipping", fillable=False)
 
-with ui.sidebar(open="closed",style="background-color: #FCDE9C;"):
+with ui.sidebar(open="closed"):
+
+
+    ui.input_radio_buttons(
+        "day",
+        "Day of the Week",
+        ["Thurs", "Fri", "Sat", "Sun"],
+        selected="Thurs",  # Set a default day, e.g., "Thurs"
+    )
+
+    ui.input_checkbox_group(
+        "time",
+        "Food service",
+        ["Lunch", "Dinner"],
+        selected=["Lunch", "Dinner"],
+        inline=True,
+    )
+
     ui.input_slider(
         "total_bill",
         "Bill amount",
@@ -21,13 +38,7 @@ with ui.sidebar(open="closed",style="background-color: #FCDE9C;"):
         value=bill_rng,
         pre="$",
     )
-    ui.input_checkbox_group(
-        "time",
-        "Food service",
-        ["Lunch", "Dinner"],
-        selected=["Lunch", "Dinner"],
-        inline=True,
-    )
+
     ui.input_action_button("reset", "Reset filter")
 
 # Add main content
@@ -91,15 +102,16 @@ with ui.layout_columns(col_widths=[6, 6, 12]):
         @render_plotly
         def scatterplot():
             color = input.scatter_color()
+            custom_colors = ["#7C1D6F", "#FAA476", "#B9257A", "#FCDE9C"]  # Define your custom color palette
             return px.scatter(
                 tips_data(),
                 x="total_bill",
                 y="tip",
-                color_discrete_sequence=["#7C1D6F"],
+                color_discrete_sequence=custom_colors,
                 color=None if color == "none" else color,
                 trendline="lowess",
             )
-
+    
     with ui.card(full_screen=True):
         with ui.card_header(class_="d-flex justify-content-between align-items-center"):
             "Tip percentages"
@@ -151,18 +163,21 @@ with ui.layout_columns(col_widths=[6, 6, 12]):
 # --------------------------------------------------------
 # Reactive calculations and effects
 # --------------------------------------------------------
-
 @reactive.calc
 def tips_data():
-    bill = input.total_bill()
-    idx1 = tips.total_bill.between(bill[0], bill[1])
-    idx2 = tips.time.isin(input.time())
-    filtered = tips[idx1 & idx2]
-    filtered["tip_percentage"] = ((filtered.tip / filtered.total_bill) * 100).round(2)  # Rounding to 2 decimal places
+    # bill = input.total_bill()
+    selected_day = input.day()  # Get the selected day from the radio button
+    idx1 = tips.total_bill.between(bill_rng[0], bill_rng[1])  # Filter by total bill range
+    idx2 = tips.time.isin(input.time())  # Filter by time (lunch/dinner)
+    idx3 = tips.day == selected_day  # Only include the selected day
+    filtered = tips[idx1 & idx2 & idx3]
+    filtered["tip_percentage"] = ((filtered.tip / filtered.total_bill) * 100).round(2)  # Calculate tip percentage
     return filtered
+
 
 @reactive.effect
 @reactive.event(input.reset)
 def _():
     ui.update_slider("total_bill", value=bill_rng)
     ui.update_checkbox_group("time", selected=["Lunch", "Dinner"])
+    ui.update_checkbox_group("day", selected=["Thurs", "Fri", "Sat", "Sun"])
