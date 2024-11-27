@@ -12,14 +12,14 @@ bill_rng = (min(tips.total_bill), max(tips.total_bill))
 # Add page title and sidebar
 ui.page_opts(title="Restaurant tipping", fillable=False)
 
-with ui.sidebar(open="closed"):
-
+with ui.sidebar(open="desktop"):
 
     ui.input_radio_buttons(
-        "day",
-        "Day of the Week",
-        ["Thurs", "Fri", "Sat", "Sun"],
-        selected="Thurs",  # Set a default day, e.g., "Thurs"
+        "filter_days",
+        "Filter Days",
+        ["All", "Thur", "Fri", "Sat", "Sun"],  # Single radio button group for all filtering options
+        selected="All",  # Default to "All" (show all days by default)
+        inline=True,
     )
 
     ui.input_checkbox_group(
@@ -42,6 +42,7 @@ with ui.sidebar(open="closed"):
     ui.input_action_button("reset", "Reset filter")
 
 # Add main content
+
 ICONS = {
     "user": fa.icon_svg("user", "regular"),
     "wallet": fa.icon_svg("wallet"),
@@ -80,14 +81,14 @@ with ui.layout_columns(fill=False):
 
 
 with ui.layout_columns(col_widths=[6, 6, 12]):
-    with ui.card(full_screen=True):
+    with ui.card(full_screen=True, style="height: 300px;"):
         ui.card_header("Tips data", style="background-color: white;")
 
         @render.data_frame
         def table():
             return render.DataGrid(tips_data())
 
-    with ui.card(full_screen=True):
+    with ui.card(full_screen=True, style="height: 300px;"):
         with ui.card_header(class_="d-flex justify-content-between align-items-center", style="background-color: white;"):
             "Total bill vs tip"
             with ui.popover(title="Add a color variable", placement="top"):
@@ -129,8 +130,10 @@ with ui.layout_columns(col_widths=[6, 6, 12]):
         def tip_perc():
             from ridgeplot import ridgeplot
 
+            # Create a dataset for the ridge plot that does not depend on the selected day
+            dat = tips.copy()  # Use the original dataset
+
             # Calculate the 'percent' as tip / total_bill
-            dat = tips_data()
             dat["percent"] = dat.tip / dat.total_bill  # Tip percentage as a ratio
 
             # Get the variable to split by (e.g., sex, day, time)
@@ -157,27 +160,39 @@ with ui.layout_columns(col_widths=[6, 6, 12]):
             )
 
             return plt
-
-
-
+ 
 # --------------------------------------------------------
 # Reactive calculations and effects
 # --------------------------------------------------------
+# Reactive data filtering
 @reactive.calc
 def tips_data():
-    # bill = input.total_bill()
-    selected_day = input.day()  # Get the selected day from the radio button
-    idx1 = tips.total_bill.between(bill_rng[0], bill_rng[1])  # Filter by total bill range
-    idx2 = tips.time.isin(input.time())  # Filter by time (lunch/dinner)
-    idx3 = tips.day == selected_day  # Only include the selected day
-    filtered = tips[idx1 & idx2 & idx3]
-    filtered["tip_percentage"] = ((filtered.tip / filtered.total_bill) * 100).round(2)  # Calculate tip percentage
-    return filtered
+    # Get the selected day from the radio buttons
+    selected_day = input.filter_days()  # Now this covers "All" and specific days
 
+    # Determine filtering logic based on the selected option
+    if selected_day == "All":
+        idx3 = tips.day.isin(["Thur", "Fri", "Sat", "Sun"])  # Include all days
+    else:
+        idx3 = tips.day == selected_day  # Filter by the selected day
+
+    # Additional filters (for bill and time)
+    idx1 = tips.total_bill.between(bill_rng[0], bill_rng[1])
+    idx2 = tips.time.isin(input.time())
+
+    # Apply all filters and calculate tip percentage
+    filtered = tips[idx1 & idx2 & idx3]
+    filtered["tip_percentage"] = ((filtered.tip / filtered.total_bill) * 100).round(2)
+    return filtered
 
 @reactive.effect
 @reactive.event(input.reset)
-def _():
+def reset_filters():
+    # Reset the filters to their default values
     ui.update_slider("total_bill", value=bill_rng)
     ui.update_checkbox_group("time", selected=["Lunch", "Dinner"])
-    ui.update_checkbox_group("day", selected=["Thurs", "Fri", "Sat", "Sun"])
+    ui.update_radio_buttons("filter_days", selected="All")  # Reset filter_option
+
+
+
+
