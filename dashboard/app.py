@@ -6,6 +6,8 @@ from shared import app_dir, tips
 from shiny import reactive, render
 from shiny.express import input, ui
 from shinywidgets import render_plotly
+from ridgeplot import ridgeplot
+
 
 bill_rng = (min(tips.total_bill), max(tips.total_bill))
 
@@ -128,8 +130,7 @@ with ui.layout_columns(col_widths=[6, 6, 12]):
 
         @render_plotly
         def tip_perc():
-            from ridgeplot import ridgeplot
-
+            
             # Create a dataset for the ridge plot that does not depend on the selected day
             dat = tips.copy()  # Use the original dataset
 
