@@ -113,14 +113,56 @@ with ui.layout_columns(col_widths=[6, 6, 12]):
                 color=None if color == "none" else color,
                 trendline="lowess",
             )
-
-            
     
     with ui.card(full_screen=True):
         with ui.card_header(class_="d-flex justify-content-between align-items-center"):
             "Tip percentages"
-            ui.img(src="/ridgeplot_image.png", width="100%", alt="Ridge Plot Image")
+            with ui.popover(title="Add a color variable"):
+                ICONS["ellipsis"]
+                ui.input_radio_buttons(
+                    "tip_perc_y",
+                    "Split by:",
+                    ["sex", "day", "time"],
+                    selected="day",
+                    inline=True,
+                )
 
+        @render_plotly
+        def tip_perc():
+            
+            # Create a dataset for the ridge plot that does not depend on the selected day
+            dat = tips.copy()  # Use the original dataset
+
+            # Calculate the 'percent' as tip / total_bill
+            dat["percent"] = dat.tip / dat.total_bill  # Tip percentage as a ratio
+
+            # Get the variable to split by (e.g., sex, day, time)
+            yvar = input.tip_perc_y()
+            uvals = dat[yvar].unique()  # Get the unique values for the chosen split variable
+
+            # Prepare the samples for the ridge plot, splitting by the selected variable
+            samples = [[dat.percent[dat[yvar] == val]] for val in uvals]
+
+            # Create the ridge plot
+            plt = ridgeplot.ridgeplot(
+                samples=samples,
+                labels=uvals,
+                bandwidth=0.01,
+                colorscale="sunsetdark",  # Default color scale
+                colormode="row-index",  # Color based on row index
+            )
+
+            # Save the plot as a static image (e.g., PNG)
+            plt.write_image("ridgeplot_image.png")  # This will save the image as a PNG file
+
+            # Update the layout of the plot (e.g., legend placement)
+            plt.update_layout(
+                legend=dict(
+                    orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5
+                )
+            )
+
+            return plt
  
 # --------------------------------------------------------
 # Reactive calculations and effects
