@@ -8,8 +8,6 @@ from shiny import reactive, render
 from shiny.express import input, ui
 from shinywidgets import render_plotly
 
-
-
 bill_rng = (min(tips.total_bill), max(tips.total_bill))
 
 # Add page title and sidebar
@@ -22,7 +20,7 @@ with ui.sidebar(open="desktop"):
         "Filter Days",
         ["All", "Thur", "Fri", "Sat", "Sun"],  # Single radio button group for all filtering options
         selected="All",  # Default to "All" (show all days by default)
-        inline=True,
+        inline=False,
     )
 
     ui.input_checkbox_group(
@@ -146,7 +144,7 @@ with ui.layout_columns(col_widths=[6, 6, 12]):
             samples = [[dat.percent[dat[yvar] == val]] for val in uvals]
 
             # Create the ridge plot
-            plt = ridgeplot(
+            plt = ridgeplot.ridgeplot(
                 samples=samples,
                 labels=uvals,
                 bandwidth=0.01,
@@ -179,7 +177,7 @@ def tips_data():
         idx3 = tips.day == selected_day  # Filter by the selected day
 
     # Additional filters (for bill and time)
-    idx1 = tips.total_bill.between(bill_rng[0], bill_rng[1])
+    idx1 = tips.total_bill.between(input.total_bill()[0], input.total_bill()[1])
     idx2 = tips.time.isin(input.time())
 
     # Apply all filters and calculate tip percentage
