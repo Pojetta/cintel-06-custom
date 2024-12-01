@@ -1,6 +1,5 @@
 import faicons as fa
 import plotly.express as px
-import ridgeplot
 from pathlib import Path
 
 # Load data and compute static values
