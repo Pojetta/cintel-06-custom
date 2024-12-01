@@ -105,14 +105,18 @@ with ui.layout_columns(col_widths=[6, 6, 12]):
         def scatterplot():
             color = input.scatter_color()
             custom_colors = ["#7C1D6F", "#FAA476", "#B9257A", "#FCDE9C"]  # Define your custom color palette
+            
+            # Create scatterplot with trendline and custom color logic
             return px.scatter(
                 tips_data(),
                 x="total_bill",
                 y="tip",
                 color_discrete_sequence=custom_colors,
                 color=None if color == "none" else color,
-                trendline="lowess",
+                trendline="ols",  # Ordinary least squares (OLS) trendline, an alternative to LOWESS
+                trendline_color_override="#B9257A"
             )
+
 
 with ui.layout_columns(col_widths=[12]):
         with ui.card(full_screen=True, style="height: 300px;"):
