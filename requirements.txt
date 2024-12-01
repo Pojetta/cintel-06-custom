@@ -6,4 +6,4 @@ pyarrow
 plotly
 scipy
 faicons 
-statsmodels
+
