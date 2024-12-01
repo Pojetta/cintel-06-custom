@@ -1,6 +1,7 @@
 import faicons as fa
 import plotly.express as px
 import ridgeplot
+from pathlib import Path
 
 # Load data and compute static values
 from shared import app_dir, tips
@@ -114,14 +115,19 @@ with ui.layout_columns(col_widths=[6, 6, 12]):
                 trendline="lowess",
             )
 
-            
-    
-    with ui.card(full_screen=True):
-        with ui.card_header(class_="d-flex justify-content-between align-items-center"):
-            "Tip percentages"
-            ui.img(src="/ridgeplot_image.png", width="100%", alt="Ridge Plot Image")
+with ui.layout_columns(col_widths=[12]):
+        with ui.card(full_screen=True, style="height: 300px;"):
+            ui.card_header("Tip Percentages", style="background-color: white;") 
 
- 
+            @render.image
+            def image():
+                # Get the path to the current directory
+                dir = Path(__file__).resolve().parent
+
+                # Create the image path and return it as an ImgData object
+                img = {"src": str(dir / "ridgeplot_image.png"), "width": "100%", "style": "object-fit: contain;"}
+                return img
+         
 # --------------------------------------------------------
 # Reactive calculations and effects
 # --------------------------------------------------------

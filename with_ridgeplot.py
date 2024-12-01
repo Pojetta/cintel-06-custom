@@ -153,7 +153,7 @@ with ui.layout_columns(col_widths=[6, 6, 12]):
             )
 
             # Save the plot as a static image (e.g., PNG)
-            plt.write_image("ridgeplot_image.png")  # This will save the image as a PNG file
+            plt.write_image("ridgeplot_image.png", )  # This will save the image as a PNG file
 
             # Update the layout of the plot (e.g., legend placement)
             plt.update_layout(
