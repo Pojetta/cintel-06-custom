@@ -7,6 +7,7 @@ from shared import app_dir, tips
 from shiny import reactive, render
 from shiny.express import input, ui
 from shinywidgets import render_plotly
+import numpy as np
 
 bill_rng = (min(tips.total_bill), max(tips.total_bill))
 
@@ -104,21 +105,51 @@ with ui.layout_columns(col_widths=[6, 6, 12]):
         @render_plotly
         def scatterplot():
             color = input.scatter_color()
-            custom_colors = ["#7C1D6F", "#FAA476", "#B9257A", "#FCDE9C"]  # Define your custom color palette
+            custom_colors = ["#7C1D6F", "#FAA476", "#B9257A", "#FCDE9C"]  # Custom color palette
             
-            # Create scatterplot with trendline and custom color logic
-            return px.scatter(
-                tips_data(),
+            # Get the data
+            df = tips_data()
+
+            # Calculate a simple linear trendline
+            trendline = np.polyfit(df["total_bill"], df["tip"], 1)  # First-degree polynomial (line)
+            trend_fn = np.poly1d(trendline)
+
+            # Create scatterplot
+            fig = px.scatter(
+                df,
                 x="total_bill",
                 y="tip",
                 color_discrete_sequence=custom_colors,
                 color=None if color == "none" else color,
-                trendline="ols",  # Ordinary least squares (OLS) trendline, an alternative to LOWESS
-                trendline_color_override="#B9257A"
             )
 
+            # Add trendline to the plot
+            fig.add_scatter(
+                x=df["total_bill"],
+                y=trend_fn(df["total_bill"]),
+                mode="lines",
+                line=dict(color="#B9257A"),  # Trendline color
+                name="Trendline",
+            )
+            
+            # Update the layout to adjust the legend
+            fig.update_layout(
+                legend=dict(
+                    orientation="h",  # Horizontal legend layout
+                    yanchor="bottom",  # Align legend to the bottom
+                    y=1.02,  # Position above the plot
+                    xanchor="center",  # Center align horizontally
+                    x=0.5,  # Center of the plot
+                    font=dict(size=10),  # Shrink font size
+                    itemwidth=30,  # Compress legend item width
+                ),
+            )
 
-with ui.layout_columns(col_widths=[12]):
+            return fig
+
+
+
+with ui.layout_columns():
         with ui.card(full_screen=True, style="height: 300px;"):
             ui.card_header("Tip Percentages", style="background-color: white;") 
 
